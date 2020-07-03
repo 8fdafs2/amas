@@ -1,16 +1,16 @@
-const database = [
+const deviceDatabase = [
   {
     deviceId: "12-34-56-78-9a",
-    onlineState: 1,
+    onlineState: 2,
 
     carState: {
       engineState: 1,
-      lightState: 1,
+      lightState: 2,
       windowState: 2,
       lockState: 1,
-      acState: 1,
+      acState: 2,
     },
   },
 ];
 
-export default database;
+export default deviceDatabase;

@@ -1,4 +1,6 @@
-import database from "./state.js";
+import deviceDatabase from "./deviceDatabase.js";
+
+console.log(deviceDatabase);
 
 const wsHandler = (conn, req) => {
   console.log("connection established");
@@ -15,7 +17,7 @@ const wsHandler = (conn, req) => {
   conn.socket.on("message", async (message) => {
     message = JSON.parse(message);
 
-    console.log(message);
+    console.log(`receiving ${JSON.stringify(message)}`);
 
     const type = message.type;
     const data = message.data;
@@ -38,7 +40,7 @@ const wsHandler = (conn, req) => {
           }
         }
         */
-        await onRequestDeviceState(conn, data);
+        onRequestDeviceState(conn, data);
         break;
       case "requestCarState":
         /*
@@ -57,7 +59,7 @@ const wsHandler = (conn, req) => {
           }
         }
         */
-        await onRequestCarState(conn, data);
+        onRequestCarState(conn, data);
         break;
       case "changeCarState":
         /*
@@ -72,7 +74,7 @@ const wsHandler = (conn, req) => {
           }
         }
         */
-        await onChangeCarState(conn, data);
+        onChangeCarState(conn, data);
         break;
       case "keepAlive":
         /*
@@ -102,7 +104,7 @@ function onRequestDeviceState(conn, data) {
     data: {
       deviceId: rec.deviceId,
       state: {
-        online: rec.onlineState,
+        onlineState: rec.onlineState,
       },
     },
   });
@@ -124,7 +126,7 @@ function onRequestCarState(conn, data) {
     };
 
     if (data.request.includes("all")) {
-      for (const [key, value] in rec.carState) {
+      for (const [key, value] of Object.entries(rec.carState)) {
         reply.data.state[key] = value;
       }
     } else {
@@ -138,7 +140,7 @@ function onRequestCarState(conn, data) {
 }
 
 function onChangeCarState(conn, data) {
-  const rec = findDeviceInfo(data.deviceId);
+  const rec = findDeviceInfo(conn, data.deviceId);
   if (!rec) return;
 
   if (stopWhenDeviceOffline(conn, rec)) return;
@@ -156,7 +158,7 @@ function onChangeCarState(conn, data) {
       },
     };
 
-    for (const key in data.request) {
+    for (const key in data.change) {
       reply.data.state[key] = rec.carState[key];
     }
 
@@ -166,12 +168,13 @@ function onChangeCarState(conn, data) {
 
 // -----------------------------------------------------------------------------
 
-function sendJSON(conn, obj) {
-  conn.socket.send(JSON.stringify(obj));
+function sendJSON(conn, message) {
+  console.log(`sending ${JSON.stringify(message)}`);
+  conn.socket.send(JSON.stringify(message));
 }
 
 function findDeviceInfo(conn, deviceId) {
-  const rec = database.find((rec) => rec.deviceId === deviceId);
+  const rec = deviceDatabase.find((rec) => rec.deviceId === deviceId);
 
   if (!rec) {
     conn.socket.send({
