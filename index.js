@@ -1,34 +1,28 @@
 "use strict";
 
-const fastify = require("fastify")({
-  logger: true,
-});
+import fastify from "fastify";
+import fastifyWebsocket from "fastify-websocket";
+
+import wsHandler from "./wsHandler.js";
+
+const app = fastify();
 
 function handle(conn) {
   conn.pipe(conn); // creates an echo server
 }
 
-fastify.register(require("fastify-websocket"), {
+app.register(fastifyWebsocket, {
   handle,
   options: { maxPayload: 1048576 },
 });
 
-fastify.get("/", async (request, reply) => {
-  return { hello: "world" };
-});
+app.get("/ws", { websocket: true }, wsHandler);
 
-fastify.get("/ws", { websocket: true }, (connection, req) => {
-  connection.socket.on("message", (message) => {
-    // message === 'hi from client'
-    connection.socket.send("hi from server");
-  });
-});
-
-fastify.listen(process.env.PORT || 3000, "0.0.0.0", (err) => {
+app.listen(process.env.PORT || 8137, "0.0.0.0", (err) => {
   if (err) {
-    fastify.log.error(err);
+    console.log.error(err);
     process.exit(1);
   }
 
-  fastify.log.info("server is running...");
+  console.log("server is running...");
 });
