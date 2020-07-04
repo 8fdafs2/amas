@@ -99,15 +99,17 @@ function onRequestDeviceState(conn, data) {
   const rec = findDeviceInfo(conn, data.deviceId);
   if (!rec) return;
 
-  sendJSON(conn, {
-    type: "deviceState",
-    data: {
-      deviceId: rec.deviceId,
-      state: {
-        onlineState: rec.onlineState,
+  setTimeout(() => {
+    sendJSON(conn, {
+      type: "deviceState",
+      data: {
+        deviceId: rec.deviceId,
+        state: {
+          onlineState: rec.onlineState,
+        },
       },
-    },
-  });
+    });
+  }, 500);
 }
 
 function onRequestCarState(conn, data) {
@@ -136,7 +138,7 @@ function onRequestCarState(conn, data) {
     }
 
     sendJSON(conn, reply);
-  }, 1000);
+  }, 500);
 }
 
 function onChangeCarState(conn, data) {
@@ -163,7 +165,7 @@ function onChangeCarState(conn, data) {
     }
 
     sendJSON(conn, reply);
-  }, 1000);
+  }, 3000);
 }
 
 // -----------------------------------------------------------------------------
